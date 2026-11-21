@@ -1,0 +1,18 @@
+# Local settings and secrets. This static site needs none, and they must never be committed.
+.env
+.env.*
+
+# Dependencies and tool output
+node_modules/
+*.log
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local tool files
+.claude/
+CLAUDE.md
