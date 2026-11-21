@@ -1,0 +1,17 @@
+{
+  "name": "Baloyi Nwayitelo | Aspiring Software Developer",
+  "short_name": "Baloyi N.",
+  "description": "Portfolio of Baloyi Nwayitelo, an aspiring Software Developer and Computer Science student at Tshwane University of Technology.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4eee3",
+  "theme_color": "#1f3d2b",
+  "icons": [
+    { "src": "assets/images/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/images/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/images/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/images/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
