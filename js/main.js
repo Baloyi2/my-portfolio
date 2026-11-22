@@ -134,21 +134,6 @@ function setUpActiveNav() {
   [hero, ...sections].filter(Boolean).forEach((section) => observer.observe(section));
 }
 
-function scrollToSection(id) {
-  const section = document.getElementById(id);
-  if (!section) {
-    return;
-  }
-  section.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth" });
-
-  // Move keyboard focus to the section heading so the next Tab continues from there.
-  const heading = section.querySelector("h1, h2");
-  if (heading) {
-    heading.setAttribute("tabindex", "-1");
-    heading.focus({ preventScroll: true });
-  }
-}
-
 /* ---------- Contact form ---------- */
 
 const errorMessages = {
@@ -381,7 +366,7 @@ function setUpSpotlight() {
       clear(current);
     }
     current = card;
-    if (!card || card.closest(".cmd")) {
+    if (!card) {
       return;
     }
     const box = card.getBoundingClientRect();
@@ -415,258 +400,7 @@ function setUpSpotlight() {
   });
 }
 
-/* ---------- Toast messages ---------- */
-
-let toastTimer = 0;
-
-function showToast(text) {
-  const toast = document.querySelector(".toast");
-  toast.textContent = text;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    toast.textContent = "";
-  }, 2800);
-}
-
-/* ---------- Command menu (Ctrl+K or Cmd+K) ---------- */
-
-function buildCommands() {
-  const commands = [];
-
-  document.querySelectorAll("main section[id]").forEach((section) => {
-    const eyebrow = section.querySelector(".eyebrow");
-    if (!eyebrow) {
-      return;
-    }
-    const name = eyebrow.textContent.replace(/\d+/, "").trim();
-    commands.push({ group: "Go to", label: name, run: () => scrollToSection(section.id) });
-  });
-
-  const email = document.querySelector(".contact-form").dataset.recipient;
-  const phone = document.querySelector('a[href^="tel:"]');
-  const github = document.querySelector('.contact-card[href*="github.com"]');
-  const linkedin = document.querySelector('.contact-card[href*="linkedin.com"]');
-  const cv = document.querySelector("[data-cv]:not([hidden]) a[download], a[data-cv]:not([hidden])");
-
-  commands.push({
-    group: "Contact",
-    label: "Copy my email address",
-    keywords: email,
-    run: () => {
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard
-          .writeText(email)
-          .then(() => showToast(`Email address copied: ${email}`))
-          .catch(() => showToast(`Couldn't copy. My email address is ${email}`));
-      } else {
-        showToast(`My email address is ${email}`);
-      }
-    },
-  });
-  commands.push({
-    group: "Contact",
-    label: "Send me an email",
-    keywords: email,
-    run: () => {
-      window.location.href = `mailto:${email}`;
-    },
-  });
-  if (phone) {
-    commands.push({
-      group: "Contact",
-      label: `Call ${(phone.querySelector(".contact-value") || phone).textContent.trim()}`,
-      keywords: "phone",
-      run: () => {
-        window.location.href = phone.getAttribute("href");
-      },
-    });
-  }
-  if (github) {
-    commands.push({ group: "Links", label: "Open my GitHub profile", run: () => window.open(github.href, "_blank", "noopener") });
-  }
-  if (linkedin) {
-    commands.push({ group: "Links", label: "Open my LinkedIn profile", run: () => window.open(linkedin.href, "_blank", "noopener") });
-  }
-  if (cv) {
-    commands.push({ group: "Links", label: "Download my CV", keywords: "resume pdf", run: () => cv.click() });
-  }
-  if (installPrompt) {
-    commands.push({ group: "Settings", label: "Install as an app", keywords: "pwa offline home screen", run: promptInstall });
-  }
-  commands.push({
-    group: "Settings",
-    label: "Switch theme",
-    keywords: "dark light mode colour color",
-    run: toggleTheme,
-  });
-
-  return commands;
-}
-
-function setUpCommandMenu() {
-  const dialog = document.querySelector(".cmd");
-  const trigger = document.querySelector(".cmd-trigger");
-  if (!dialog || typeof dialog.showModal !== "function") {
-    return;
-  }
-
-  const input = dialog.querySelector(".cmd-input");
-  const list = dialog.querySelector(".cmd-list");
-  const empty = dialog.querySelector(".cmd-empty");
-  const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
-  const shortcut = isMac ? "⌘ K" : "Ctrl K";
-
-  trigger.querySelector("kbd").textContent = shortcut;
-  trigger.setAttribute("aria-label", `Open the command menu (${isMac ? "Command" : "Control"} K)`);
-  trigger.hidden = false;
-
-  let commands = [];
-  let matches = [];
-  let active = 0;
-
-  function themeLabel() {
-    return root.dataset.theme === "dark" ? "Switch to light theme" : "Switch to dark theme";
-  }
-
-  function render() {
-    const words = input.value.toLowerCase().split(/\s+/).filter(Boolean);
-    matches = commands.filter((command) => {
-      const text = `${command.group} ${command.label} ${command.keywords || ""}`.toLowerCase();
-      return words.every((word) => text.includes(word));
-    });
-    active = Math.min(active, Math.max(matches.length - 1, 0));
-
-    list.replaceChildren(
-      ...matches.map((command, index) => {
-        const option = document.createElement("li");
-        option.id = `cmd-option-${index}`;
-        option.className = "cmd-option";
-        option.setAttribute("role", "option");
-        option.setAttribute("aria-selected", String(index === active));
-
-        const group = document.createElement("span");
-        group.className = "cmd-group";
-        group.textContent = command.group;
-
-        const label = document.createElement("span");
-        label.className = "cmd-label";
-        label.textContent = command.label === "Switch theme" ? themeLabel() : command.label;
-
-        option.append(group, label);
-        option.addEventListener("pointermove", () => setActive(index));
-        option.addEventListener("click", () => runCommand(index));
-        return option;
-      })
-    );
-
-    empty.hidden = matches.length > 0;
-    updateActiveDescendant();
-  }
-
-  function updateActiveDescendant() {
-    if (matches.length > 0) {
-      input.setAttribute("aria-activedescendant", `cmd-option-${active}`);
-    } else {
-      input.removeAttribute("aria-activedescendant");
-    }
-  }
-
-  function setActive(index) {
-    if (index === active || matches.length === 0) {
-      return;
-    }
-    list.children[active]?.setAttribute("aria-selected", "false");
-    active = (index + matches.length) % matches.length;
-    const option = list.children[active];
-    option.setAttribute("aria-selected", "true");
-    option.scrollIntoView({ block: "nearest" });
-    updateActiveDescendant();
-  }
-
-  function runCommand(index) {
-    const command = matches[index];
-    if (!command) {
-      return;
-    }
-    dialog.close();
-    // Run after the dialog has closed and returned focus, so focus moves can take effect.
-    requestAnimationFrame(() => command.run());
-  }
-
-  function open() {
-    commands = buildCommands();
-    input.value = "";
-    active = 0;
-    render();
-    dialog.showModal();
-    input.focus();
-  }
-
-  trigger.addEventListener("click", open);
-
-  document.addEventListener("keydown", (event) => {
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-      event.preventDefault();
-      if (dialog.open) {
-        dialog.close();
-      } else {
-        open();
-      }
-    }
-  });
-
-  input.addEventListener("input", () => {
-    active = 0;
-    render();
-  });
-
-  input.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      setActive(active + 1);
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      setActive(active - 1);
-    } else if (event.key === "Home") {
-      event.preventDefault();
-      setActive(0);
-    } else if (event.key === "End") {
-      event.preventDefault();
-      setActive(matches.length - 1);
-    } else if (event.key === "Enter") {
-      event.preventDefault();
-      runCommand(active);
-    }
-  });
-
-  // A click on the dimmed backdrop (outside the panel) closes the menu.
-  dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) {
-      dialog.close();
-    }
-  });
-}
-
-/* ---------- Installable app and offline support ---------- */
-
-let installPrompt = null;
-
-window.addEventListener("beforeinstallprompt", (event) => {
-  installPrompt = event;
-});
-
-window.addEventListener("appinstalled", () => {
-  installPrompt = null;
-});
-
-function promptInstall() {
-  if (!installPrompt) {
-    return false;
-  }
-  installPrompt.prompt();
-  installPrompt = null;
-  return true;
-}
+/* ---------- Offline support ---------- */
 
 function setUpOfflineSupport() {
   if (!("serviceWorker" in navigator) || !window.isSecureContext) {
@@ -828,7 +562,6 @@ setUpScrollEffects();
 setUpReveal();
 setUpTyping();
 setUpSpotlight();
-setUpCommandMenu();
 setUpHeroCanvas();
 setUpOfflineSupport();
 showCurrentYear();

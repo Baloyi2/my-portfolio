@@ -406,9 +406,8 @@ section[id] {
   display: block;
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1200px) {
   .menu-button,
-  .nav-contact,
   .nav-cv {
     display: none;
   }
@@ -426,7 +425,7 @@ section[id] {
   /* The current section is shown as a soft pill. */
   .site-nav a {
     display: block;
-    padding: 0.4rem 0.7rem;
+    padding: 0.4rem 0.55rem;
     border-radius: 8px;
   }
 
@@ -444,7 +443,7 @@ section[id] {
   }
 }
 
-@media (max-width: 1099.98px) {
+@media (max-width: 1199.98px) {
   .header-cta {
     display: none;
   }
@@ -1510,205 +1509,8 @@ section[id] {
   }
 }
 
-/* Command menu button in the header. */
-.cmd-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-width: 2.5rem;
-  height: 2.5rem;
-  padding: 0 0.6rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-small);
-  background: var(--surface);
-  color: var(--muted);
-  font: inherit;
-  cursor: pointer;
-}
-
-@media (hover: hover) {
-  .cmd-trigger:hover {
-    border-color: var(--highlight);
-    color: var(--highlight-text);
-  }
-}
-
-.cmd-trigger kbd {
-  display: none;
-}
-
-@media (min-width: 1280px) {
-  .cmd-trigger kbd {
-    display: inline;
-  }
-}
-
-@media (max-width: 1099.98px) {
-  .cmd-trigger {
-    height: 2.75rem;
-    min-width: 2.75rem;
-  }
-}
-
-kbd {
-  padding: 0.1rem 0.4rem;
-  border: 1px solid var(--line);
-  border-bottom-width: 2px;
-  border-radius: 5px;
-  background: var(--bg);
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1.4;
-  white-space: nowrap;
-}
-
-/* Command menu */
-.cmd {
-  width: min(36rem, calc(100vw - 2rem));
-  max-height: min(34rem, calc(100vh - 4rem));
-  margin: 12vh auto auto;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-large);
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: 0 24px 60px rgb(14 28 20 / 0.28);
-}
-
-.cmd[open] {
-  display: flex;
-  flex-direction: column;
-}
-
-.cmd::backdrop {
-  background: rgb(14 28 20 / 0.45);
-  backdrop-filter: blur(4px);
-}
-
-.cmd-search {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.9rem 1.1rem;
-  border-bottom: 1px solid var(--line);
-  color: var(--highlight-text);
-}
-
-.cmd-input {
-  flex: 1;
-  min-width: 0;
-  padding: 0.35rem 0;
-  border: 0;
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  font-size: 1.0625rem;
-}
-
-.cmd-input:focus {
-  outline: none;
-}
-
-.cmd-input::placeholder {
-  color: color-mix(in srgb, var(--muted) 75%, transparent);
-}
-
-.cmd-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0.5rem;
-}
-
-.cmd-option {
-  display: flex;
-  align-items: baseline;
-  gap: 0.85rem;
-  padding: 0.65rem 0.8rem;
-  border-radius: var(--radius-small);
-  cursor: pointer;
-}
-
-.cmd-option[aria-selected="true"] {
-  background: var(--highlight-soft);
-  color: var(--highlight-text);
-}
-
-.cmd-group {
-  flex: none;
-  width: 4.5rem;
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.cmd-label {
-  font-weight: 650;
-}
-
-.cmd-empty {
-  margin: 0;
-  padding: 1rem 1.25rem;
-  color: var(--muted);
-}
-
-.cmd-hint {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem 0.5rem;
-  margin: 0;
-  padding: 0.7rem 1.1rem;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 0.8125rem;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .cmd[open] {
-    animation: cmd-in 160ms ease-out;
-  }
-}
-
-@keyframes cmd-in {
-  from {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.98);
-  }
-}
-
-/* Short confirmation messages, such as "Email address copied". */
-.toast {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 50%;
-  z-index: 30;
-  max-width: calc(100vw - 2rem);
-  padding: 0.7rem 1.1rem;
-  border-radius: var(--radius-small);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 0.9375rem;
-  font-weight: 650;
-  box-shadow: var(--shadow-raised);
-  transform: translateX(-50%);
-}
-
-.toast:empty {
-  display: none;
-}
-
 /* Phones */
 @media (max-width: 599.98px) {
-  .cmd-trigger {
-    display: none;
-  }
-
   .empty-card {
     flex-direction: column;
     align-items: flex-start;

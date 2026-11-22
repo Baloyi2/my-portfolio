@@ -25,8 +25,7 @@ Personal portfolio of Baloyi Nwayitelo, an aspiring Software Developer and Compu
 - Project cards with a category, my contribution, technologies, expandable details and a "Request details" email button.
 - Education with relevant coursework, and a Certifications section that stays empty until a certificate is earned.
 - Contact form (name, email, subject, message) that opens the visitor's email app, next to email, phone, location and GitHub cards.
-- Navigation that highlights the section on screen, a "Get in touch" button in the header, and a back-to-top button.
-- Command menu: press Ctrl+K (Cmd+K on a Mac) or the search button in the header to jump to a section, copy my email, open my profiles or switch theme.
+- Navigation that highlights the section on screen, a "Download CV" button in the header, and a back-to-top button.
 - Typing effect in the hero, sections and cards that fade in while scrolling, a purple glow that follows the pointer over cards, and a reading-progress bar under the header.
 - An animated network of purple dots behind the hero, a circular ripple when the theme changes, and project cards that tilt slightly under the mouse.
 - Installable app that also works offline: visitors can add the portfolio to their phone or computer, and after the first visit it opens without internet.
@@ -81,7 +80,7 @@ The service worker (`sw.js`) always loads the latest files when you are online, 
 
 | Content | How to update it |
 |---|---|
-| CV | Save the PDF as `assets/cv/baloyi-nwayitelo-cv.pdf`. Then, in `index.html`, remove the `hidden` attribute from every element marked `data-cv` (header, menu, hero, contact and footer). The download buttons stay hidden until then, so the site never links to a missing file. |
+| CV | The CV is `assets/cv/Nwayitelo_Baloyi_CV.pdf` and is linked from the header, menu, hero and footer. To update it, replace the file and keep the same name (GitHub Pages treats upper and lower case as different). |
 | Project screenshots | Save images in `assets/images/projects/`, for example `tender-scrapper.webp`. Add an `<img>` at the top of the project's `<article>` with `alt`, `width`, `height` and `loading="lazy"` attributes. |
 | Profile photo | Replace `assets/images/me.jpeg` with a new photo of the same name. If its size changes, update the `width` and `height` on the hero `<img>` in `index.html`. |
 | LinkedIn | The profile URL appears in the hero links, the contact cards and the footer links in `index.html`. Update all three if it changes. |
