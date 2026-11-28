@@ -18,21 +18,31 @@ Personal portfolio of Baloyi Nwayitelo, an aspiring Software Developer and Compu
 
 ## Features
 
-- Hero with my name, role, introduction, calls to action, availability, my photo and credential cards.
-- Numbered sections: About, Practical Software Development Experience, Skills, Projects, Education, Certifications, Focus and Contact.
-- Experience timeline that labels which parts of a team project I built myself, which I built with the team, and what is still in progress.
-- Skill cards grouped by area, including the tools I use, each listing only technologies used in my project work.
-- Project cards with a category, my contribution, technologies, expandable details and a "Request details" email button.
+- A forest-green hero with my name, title, availability, introduction, "View My Projects" and "Download My CV" buttons, and a profile card with my photo (shown in full) and two key facts.
+- Sections for About, Practical Software Development Experience, Skills, Projects, Education, Certifications, career focus and Contact.
+- Experience shown side by side as "Built by me" and "Team contribution", with a separate "In progress" note, so each part of the team project is clearly labelled.
+- Skills in one panel divided into six areas, each listing only technologies used in my project work.
+- A project card with its category, status labels, my contribution, technologies, expandable details and a "Request details" email button, with room for a real screenshot.
 - Education with relevant coursework, and a Certifications section that stays empty until a certificate is earned.
-- Contact form (name, email, subject, message) that opens the visitor's email app, next to email, phone, location and GitHub cards.
-- Navigation that highlights the section on screen, a "Download CV" button in the header, and a back-to-top button.
-- Typing effect in the hero, sections and cards that fade in while scrolling, a purple glow that follows the pointer over cards, and a reading-progress bar under the header.
-- An animated network of purple dots behind the hero, a circular ripple when the theme changes, and project cards that tilt slightly under the mouse.
-- Installable app that also works offline: visitors can add the portfolio to their phone or computer, and after the first visit it opens without internet.
-- Every animation is skipped for visitors who turn off motion, and all content still shows with JavaScript turned off.
+- Contact form (name, email, subject, message) that opens the visitor's email app, next to email, phone, location, GitHub and LinkedIn details.
+- Sticky navigation that marks the section on screen, a "Download CV" button, a drop-down menu on phones and tablets, a reading-progress line and a back-to-top button.
 - Light and dark themes in forest green, sand beige and a touch of electric purple. The site follows the visitor's system setting until they choose a theme, and remembers that choice.
-- Layouts for phones, tablets and desktops, with large tap targets and a collapsible menu on small screens.
-- Accessible markup: skip link, labelled landmarks and form fields, visible keyboard focus, colour contrast that meets WCAG AA, and reduced motion for visitors who ask for it.
+- Calm motion: a short entrance for the hero, smooth scrolling, a quick fade when the theme changes and subtle hover states. Visitors who turn off motion see no animation at all.
+- Installable app that also works offline after the first visit.
+- Layouts tested from 320px phones to 2560px monitors, with large tap targets.
+- Accessible markup: skip link, labelled landmarks and form fields, visible keyboard focus, focus kept clear of the sticky header, and colour contrast that meets WCAG 2.2 AA.
+
+## Design system
+
+All colours, sizes and corner radii are CSS custom properties at the top of `css/styles.css`, with a second set for the dark theme.
+
+| Role | Light | Dark |
+|---|---|---|
+| Primary (buttons, hero, key lines) | Forest green `#1f3d2b` | Sand `#e8dcc4` on dark green |
+| Neutral (page, bands, tags) | Sand-tinted `#faf7f1`, `#f2ece0`, `#f3eee3` | `#0f1d15`, `#122219`, `#1b3024` |
+| Accent (used sparingly) | Electric purple `#8b5cf6` | `#a98bfa` |
+
+Purple is kept for focus rings, the current-section line in the navigation, the reading-progress line and the "Team contribution" label. Type is Manrope throughout, with weights from 450 (body) to 800 (headings). Corner radii are 6px for tags, 10px for buttons and fields, 14px for inner panels and 20px for cards.
 
 ## Built with
 
@@ -50,11 +60,11 @@ There are no frameworks, packages or build steps. The files in the repository ar
 │   └── styles.css              # Layout, components and both colour themes
 ├── js/
 │   ├── theme.js                # Applies the saved theme before the page is drawn
-│   └── main.js                 # Theme toggle, mobile menu, active link, contact form, back to top, footer year
+│   └── main.js                 # Theme toggle, mobile menu, active link, contact form, scroll effects, back to top, footer year
 ├── assets/
 │   ├── fonts/manrope/          # Font file and its licence
 │   ├── images/                 # Favicon, and app icons in images/icons/
-│   └── cv/                     # CV in PDF format (create when adding the CV)
+│   └── cv/                     # CV in PDF format
 ├── manifest.webmanifest        # Makes the site installable as an app
 ├── sw.js                       # Service worker for offline use
 ├── .nojekyll                   # Tells GitHub Pages to publish the files as they are
@@ -74,19 +84,19 @@ Then open <http://localhost:8000/my-portfolio/>. VS Code's Live Server extension
 
 Any asset that loads locally but breaks online usually has a path starting with `/`. Keep all paths relative, for example `css/styles.css`.
 
-The service worker (`sw.js`) always loads the latest files when you are online, so your edits show up straight away. If you rename or add files that the site needs offline, add them to the `PRECACHE` list in `sw.js` and change the version in `CACHE` (for example `baloyi-portfolio-v2`).
+The service worker (`sw.js`) always loads the latest files when you are online, so your edits show up straight away. If you rename or add files that the site needs offline, add them to the `PRECACHE` list in `sw.js` and change the version in `CACHE` (for example from `baloyi-portfolio-v3` to `baloyi-portfolio-v4`).
 
 ## Updating the content
 
 | Content | How to update it |
 |---|---|
 | CV | The CV is `assets/cv/Nwayitelo_Baloyi_CV.pdf` and is linked from the header, menu, hero and footer. To update it, replace the file and keep the same name (GitHub Pages treats upper and lower case as different). |
-| Project screenshots | Save images in `assets/images/projects/`, for example `tender-scrapper.webp`. Add an `<img>` at the top of the project's `<article>` with `alt`, `width`, `height` and `loading="lazy"` attributes. |
+| Project screenshots | Save real screenshots in `assets/images/projects/`, for example `tender-scrapper.png`. The project card in `index.html` has a comment with a ready-made `<figure class="project-media">` block: paste it at the top of the card and set the `src`, `alt`, `width` and `height`. The image is shown at 16:9 from the top. |
 | Profile photo | Replace `assets/images/me.jpeg` with a new photo of the same name. If its size changes, update the `width` and `height` on the hero `<img>` in `index.html`. |
 | LinkedIn | The profile URL appears in the hero links, the contact cards and the footer links in `index.html`. Update all three if it changes. |
 | Contact email | Change the email links and the form's `data-recipient` attribute in `index.html`. |
-| Experience and projects | Edit the `timeline-card` and `project` blocks. Use `badge-mine` for parts I built, `badge-team` for team work and `badge-progress` for work in progress. List only features that are finished as finished. |
-| Certificates | There is no certificates section yet. Add one when a certificate is earned, and link to the issuer's verification page where possible. |
+| Experience and projects | Edit the `role-card` and `project` blocks. Put my own work in the `work-group-mine` list, team work in `work-group-team`, and unfinished work in the `role-status` note. Use `badge-mine`, `badge-team` and `badge-progress` for labels. List only features that are finished as finished. |
+| Certificates | The Certifications section shows an empty state until a certificate is earned. Replace the `empty-state` block with the certificate's name, issuer and date, and link to the issuer's verification page where possible. |
 
 GitHub Pages treats `CV.pdf` and `cv.pdf` as different files, so use lowercase file names and match them exactly in links.
 

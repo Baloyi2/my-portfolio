@@ -2,7 +2,7 @@
 // It always tries the network first, so visitors see the latest version whenever they are online,
 // and falls back to the saved copy when they are offline.
 
-const CACHE = "baloyi-portfolio-v2";
+const CACHE = "baloyi-portfolio-v3";
 const PRECACHE = [
   "./",
   "index.html",

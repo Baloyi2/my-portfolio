@@ -1,5 +1,9 @@
 const root = document.documentElement;
 const themeButton = document.querySelector(".theme-toggle");
+const header = document.querySelector(".site-header");
+
+// Matches the min-width in css/styles.css where the full navigation bar appears.
+const desktopNav = window.matchMedia("(min-width: 1200px)");
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -12,10 +16,10 @@ function applyTheme(theme) {
   const otherTheme = theme === "dark" ? "light" : "dark";
   themeButton.setAttribute("aria-label", `Switch to ${otherTheme} theme`);
 
-  // Colour of the browser bar on phones and of the installed app's title bar.
+  // Colour of the browser bar on phones, matched to the header.
   const browserColour = document.querySelector('meta[name="theme-color"]');
   if (browserColour) {
-    browserColour.content = theme === "dark" ? "#0e1c14" : "#1f3d2b";
+    browserColour.content = theme === "dark" ? "#0f1d15" : "#faf7f1";
   }
 }
 
@@ -27,9 +31,8 @@ function saveTheme(theme) {
   }
 }
 
-// Switches theme. Where the browser supports view transitions, the new colours
-// spread out as a circle from `origin` (the theme button when no origin is given).
-function toggleTheme(origin) {
+// Switches theme. Where the browser supports view transitions, the colours cross-fade briefly.
+function toggleTheme() {
   const theme = root.dataset.theme === "dark" ? "light" : "dark";
   const change = () => {
     applyTheme(theme);
@@ -41,32 +44,15 @@ function toggleTheme(origin) {
     return theme;
   }
 
-  const box = themeButton.getBoundingClientRect();
-  const x = origin ? origin.x : box.left + box.width / 2 || window.innerWidth / 2;
-  const y = origin ? origin.y : box.top + box.height / 2 || 0;
-  const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
-
-  const transition = document.startViewTransition(change);
-  transition.ready
-    .then(() => {
-      root.animate(
-        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
-        { duration: 600, easing: "cubic-bezier(0.4, 0, 0.2, 1)", pseudoElement: "::view-transition-new(root)" }
-      );
-    })
-    .catch(() => {
-      // The theme has still changed; only the animation was skipped.
-    });
+  document.startViewTransition(change).ready.catch(() => {
+    // The theme has still changed; only the fade was skipped.
+  });
   return theme;
 }
 
 function setUpThemeToggle() {
   applyTheme(root.dataset.theme);
-  themeButton.addEventListener("click", (event) => {
-    // Keyboard presses report 0,0, so they start the circle from the button instead.
-    const fromPointer = event.clientX || event.clientY ? { x: event.clientX, y: event.clientY } : null;
-    toggleTheme(fromPointer);
-  });
+  themeButton.addEventListener("click", toggleTheme);
 }
 
 /* ---------- Navigation ---------- */
@@ -81,10 +67,32 @@ function setUpMobileMenu() {
     nav.classList.toggle("is-open", open);
   };
 
-  button.addEventListener("click", () => setOpen(!isOpen()));
+  button.addEventListener("click", () => {
+    const open = !isOpen();
+    setOpen(open);
+    // The links come before the button in the page, so move focus to them;
+    // otherwise the next Tab would skip past the open menu.
+    if (open) {
+      nav.querySelector("a").focus({ preventScroll: true });
+    }
+  });
 
   nav.addEventListener("click", (event) => {
     if (event.target.closest("a")) {
+      setOpen(false);
+    }
+  });
+
+  // A tap or click anywhere outside the header closes the menu.
+  document.addEventListener("click", (event) => {
+    if (isOpen() && !header.contains(event.target)) {
+      setOpen(false);
+    }
+  });
+
+  // Tabbing out of the header closes the menu, so it never covers the focused element.
+  header.addEventListener("focusout", (event) => {
+    if (isOpen() && event.relatedTarget && !header.contains(event.relatedTarget)) {
       setOpen(false);
     }
   });
@@ -93,6 +101,13 @@ function setUpMobileMenu() {
     if (event.key === "Escape" && isOpen()) {
       setOpen(false);
       button.focus();
+    }
+  });
+
+  // Widening the window to the full navigation bar closes the drop-down.
+  desktopNav.addEventListener("change", (event) => {
+    if (event.matches) {
+      setOpen(false);
     }
   });
 }
@@ -222,11 +237,10 @@ function setUpContactForm() {
   });
 }
 
-/* ---------- Scrolling: back-to-top button and reading progress ---------- */
+/* ---------- Scrolling: header edge, reading progress and back-to-top button ---------- */
 
 function setUpScrollEffects() {
   const toTop = document.querySelector(".to-top");
-  const header = document.querySelector(".site-header");
   let frame = 0;
 
   function update() {
@@ -234,6 +248,7 @@ function setUpScrollEffects() {
     const scrollable = document.documentElement.scrollHeight - window.innerHeight;
     const progress = scrollable > 0 ? Math.min(window.scrollY / scrollable, 1) : 0;
     header.style.setProperty("--progress", progress.toFixed(4));
+    header.classList.toggle("is-scrolled", window.scrollY > 8);
     toTop.hidden = window.scrollY < 700;
   }
 
@@ -256,150 +271,6 @@ function setUpScrollEffects() {
   });
 }
 
-/* ---------- Scroll reveal: sections and cards fade in as they enter the screen ---------- */
-
-const revealSelector = ".section-head, .card, .more-card, .empty-card";
-
-function setUpReveal() {
-  if (prefersReducedMotion() || !("IntersectionObserver" in window)) {
-    return;
-  }
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) {
-          return;
-        }
-        const element = entry.target;
-        observer.unobserve(element);
-        element.classList.add("is-visible");
-
-        // Once the entrance has played, drop the classes so hover effects run without a delay.
-        const delay = parseInt(element.style.getPropertyValue("--reveal-delay"), 10) || 0;
-        setTimeout(() => {
-          element.classList.remove("reveal", "is-visible");
-          element.style.removeProperty("--reveal-delay");
-        }, 800 + delay);
-      });
-    },
-    { rootMargin: "0px 0px -8% 0px" }
-  );
-
-  document.querySelectorAll(`main ${revealSelector.split(", ").join(", main ")}`).forEach((element) => {
-    if (element.closest(".hero")) {
-      return;
-    }
-    // Cards in the same grid arrive one after another.
-    const siblings = Array.from(element.parentElement.children).filter((child) => child.matches(revealSelector));
-    const index = Math.max(siblings.indexOf(element), 0);
-    element.style.setProperty("--reveal-delay", `${Math.min(index, 5) * 70}ms`);
-    element.classList.add("reveal");
-    observer.observe(element);
-  });
-}
-
-/* ---------- Typing effect in the hero ---------- */
-
-function setUpTyping() {
-  const line = document.querySelector(".hero-typing");
-  const output = line && line.querySelector(".typing-text");
-  if (!output) {
-    return;
-  }
-
-  const phrases = JSON.parse(line.dataset.phrases);
-
-  if (prefersReducedMotion()) {
-    line.classList.add("is-static");
-    output.textContent = line.dataset.static;
-    return;
-  }
-
-  let phrase = 0;
-  let length = phrases[0].length;
-  let deleting = false;
-
-  function tick() {
-    const word = phrases[phrase];
-
-    if (!deleting && length === word.length) {
-      deleting = true;
-      setTimeout(tick, 1800);
-      return;
-    }
-    if (deleting && length === 0) {
-      deleting = false;
-      phrase = (phrase + 1) % phrases.length;
-      setTimeout(tick, 350);
-      return;
-    }
-
-    length += deleting ? -1 : 1;
-    output.textContent = phrases[phrase].slice(0, length);
-    setTimeout(tick, deleting ? 35 : 80);
-  }
-
-  output.textContent = phrases[0];
-  setTimeout(tick, 1800);
-}
-
-/* ---------- Spotlight: a purple glow that follows the pointer over cards ---------- */
-
-function setUpSpotlight() {
-  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-    return;
-  }
-
-  let current = null;
-  let lastEvent = null;
-  let frame = 0;
-
-  function clear(card) {
-    ["--mx", "--my", "--rx", "--ry"].forEach((name) => card.style.removeProperty(name));
-  }
-
-  function update() {
-    frame = 0;
-    const card = lastEvent.target instanceof Element ? lastEvent.target.closest(".card, .more-card, .empty-card") : null;
-    if (current && current !== card) {
-      clear(current);
-    }
-    current = card;
-    if (!card) {
-      return;
-    }
-    const box = card.getBoundingClientRect();
-    card.style.setProperty("--mx", `${Math.round(lastEvent.clientX - box.left)}px`);
-    card.style.setProperty("--my", `${Math.round(lastEvent.clientY - box.top)}px`);
-
-    // Project cards also tilt a little towards the pointer.
-    if (card.classList.contains("project") && !prefersReducedMotion()) {
-      const across = (lastEvent.clientX - box.left) / box.width - 0.5;
-      const down = (lastEvent.clientY - box.top) / box.height - 0.5;
-      card.style.setProperty("--ry", `${(across * 6).toFixed(2)}deg`);
-      card.style.setProperty("--rx", `${(-down * 6).toFixed(2)}deg`);
-    }
-  }
-
-  document.addEventListener(
-    "pointermove",
-    (event) => {
-      lastEvent = event;
-      if (!frame) {
-        frame = requestAnimationFrame(update);
-      }
-    },
-    { passive: true }
-  );
-  document.addEventListener("pointerleave", () => {
-    if (current) {
-      clear(current);
-      current = null;
-    }
-  });
-}
-
 /* ---------- Offline support ---------- */
 
 function setUpOfflineSupport() {
@@ -411,145 +282,6 @@ function setUpOfflineSupport() {
   });
 }
 
-/* ---------- Animated network behind the hero ---------- */
-
-function setUpHeroCanvas() {
-  const canvas = document.querySelector(".hero-canvas");
-  const context = canvas && canvas.getContext ? canvas.getContext("2d") : null;
-  if (!context) {
-    return;
-  }
-
-  const hero = canvas.parentElement;
-  const still = prefersReducedMotion();
-  let width = 0;
-  let height = 0;
-  let points = [];
-  let colour = "139, 92, 246";
-  let frame = 0;
-  let visible = true;
-  let pointer = null;
-
-  function readColour() {
-    const match = /^#([0-9a-f]{6})$/i.exec(getComputedStyle(root).getPropertyValue("--highlight").trim());
-    if (match) {
-      const value = parseInt(match[1], 16);
-      colour = `${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}`;
-    }
-  }
-
-  function line(fromX, fromY, toX, toY, alpha) {
-    context.strokeStyle = `rgba(${colour}, ${alpha})`;
-    context.beginPath();
-    context.moveTo(fromX, fromY);
-    context.lineTo(toX, toY);
-    context.stroke();
-  }
-
-  function draw() {
-    context.clearRect(0, 0, width, height);
-    context.lineWidth = 1;
-    const reach = 130;
-
-    points.forEach((a, index) => {
-      for (let next = index + 1; next < points.length; next++) {
-        const b = points[next];
-        const distance = Math.hypot(a.x - b.x, a.y - b.y);
-        if (distance < reach) {
-          line(a.x, a.y, b.x, b.y, (1 - distance / reach) * 0.35);
-        }
-      }
-      if (pointer) {
-        const distance = Math.hypot(a.x - pointer.x, a.y - pointer.y);
-        if (distance < 170) {
-          line(a.x, a.y, pointer.x, pointer.y, (1 - distance / 170) * 0.55);
-        }
-      }
-      context.fillStyle = `rgba(${colour}, 0.6)`;
-      context.beginPath();
-      context.arc(a.x, a.y, a.r, 0, Math.PI * 2);
-      context.fill();
-    });
-  }
-
-  function resize() {
-    const ratio = Math.min(window.devicePixelRatio || 1, 2);
-    width = hero.clientWidth;
-    height = hero.clientHeight;
-    canvas.width = Math.round(width * ratio);
-    canvas.height = Math.round(height * ratio);
-    context.setTransform(ratio, 0, 0, ratio, 0, 0);
-
-    // About one dot per 16,000 square pixels, between 18 and 70 dots.
-    const count = Math.round(Math.min(70, Math.max(18, (width * height) / 16000)));
-    points = Array.from({ length: count }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3,
-      r: Math.random() * 1.4 + 0.8,
-    }));
-    draw();
-  }
-
-  function step() {
-    frame = 0;
-    points.forEach((point) => {
-      point.x += point.vx;
-      point.y += point.vy;
-      if (point.x < 0 || point.x > width) {
-        point.vx *= -1;
-      }
-      if (point.y < 0 || point.y > height) {
-        point.vy *= -1;
-      }
-    });
-    draw();
-    start();
-  }
-
-  // Animates only while the hero is on screen and the tab is visible, to save battery.
-  function start() {
-    if (!still && !frame && visible && !document.hidden) {
-      frame = requestAnimationFrame(step);
-    }
-  }
-
-  readColour();
-  resize();
-  canvas.dataset.state = still ? "still" : "moving";
-
-  if ("ResizeObserver" in window) {
-    new ResizeObserver(resize).observe(hero);
-  }
-  if ("IntersectionObserver" in window) {
-    new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
-      start();
-    }).observe(hero);
-  }
-  document.addEventListener("visibilitychange", start);
-  new MutationObserver(() => {
-    readColour();
-    draw();
-  }).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
-
-  if (!still) {
-    hero.addEventListener(
-      "pointermove",
-      (event) => {
-        const box = hero.getBoundingClientRect();
-        pointer = { x: event.clientX - box.left, y: event.clientY - box.top };
-      },
-      { passive: true }
-    );
-    hero.addEventListener("pointerleave", () => {
-      pointer = null;
-    });
-  }
-  start();
-}
-
 function showCurrentYear() {
   document.querySelector(".current-year").textContent = new Date().getFullYear();
 }
@@ -559,9 +291,5 @@ setUpMobileMenu();
 setUpActiveNav();
 setUpContactForm();
 setUpScrollEffects();
-setUpReveal();
-setUpTyping();
-setUpSpotlight();
-setUpHeroCanvas();
 setUpOfflineSupport();
 showCurrentYear();
